@@ -1,0 +1,13 @@
+!!!!
+%html
+  %head
+    %title Cube with webgl
+    %script{type: "text/javascript", src: "/js/sylvester.js"}
+    %script{type: "text/javascript", src: "/js/cube.js"}
+    %script{type: "text/javascript", src: "/js/glUtils.js"}
+    %script#shader-fs{type: "x-shader/x-fragment", src: "/js/shader-fs.js"}
+    %script#shader-vs{type: "x-shader/x-vertex",   src: "/js/shader-vs.js"}
+
+  %body{onload: "start();"}
+    %canvas#glcanvas{width: 640, height:480}
+      It seems that your browser doesn't support canvas :(

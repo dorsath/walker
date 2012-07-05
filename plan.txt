@@ -1,0 +1,14 @@
+start():
+  keyboard input
+  mouse input
+  window
+  shaders
+  load all object buffers
+  set drawloop()
+
+
+drawloop():
+  handle keys
+  apply physics if neccesary
+  set camera
+  draw everything
