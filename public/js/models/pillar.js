@@ -20,6 +20,7 @@
     Pillar.prototype.buffer = function() {
       var data, _i, _len, _ref, _results;
       this.data = window.loaded_objects;
+      console.log(this.data);
       _ref = this.data;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -29,46 +30,25 @@
       return _results;
     };
 
-    Pillar.prototype.drawPillar = function() {
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.pillarVerticesBuffer);
-      gl.vertexAttribPointer(gl.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeVerticesColorBuffer);
-      gl.vertexAttribPointer(gl.vertexColorAttribute, 3, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.pillarVerticesIndexBuffer);
-      gl.setMatrixUniforms();
-      return gl.drawElements(gl.TRIANGLES, this.data.indices.length, gl.UNSIGNED_SHORT, 0);
-    };
-
-    Pillar.prototype.bufferPillar = function() {
-      var generatedColors;
-      this.pillarVerticesBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.pillarVerticesBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.data.vertices), gl.STATIC_DRAW);
-      generatedColors = [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0];
-      this.cubeVerticesColorBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeVerticesColorBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
-      this.pillarVerticesIndexBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.pillarVerticesIndexBuffer);
-      return gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.data.indices), gl.STATIC_DRAW);
-    };
-
     Pillar.prototype.drawObject = function(data) {
       gl.bindBuffer(gl.ARRAY_BUFFER, data.verticesBuffer);
       gl.vertexAttribPointer(gl.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, data.verticesColorBuffer);
-      gl.vertexAttribPointer(gl.vertexColorAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(gl.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, data.verticesIndexBuffer);
       gl.setMatrixUniforms();
       return gl.drawElements(gl.TRIANGLES, data.indices.length, gl.UNSIGNED_SHORT, 0);
     };
 
     Pillar.prototype.bufferObject = function(data) {
-      var generatedColors;
+      var generatedColors, n, _i, _ref;
       data.verticesBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, data.verticesBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vertices), gl.STATIC_DRAW);
-      generatedColors = [1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0];
+      generatedColors = [];
+      for (n = _i = 0, _ref = data.indices.length; 0 <= _ref ? _i <= _ref : _i >= _ref; n = 0 <= _ref ? ++_i : --_i) {
+        generatedColors = generatedColors.concat(data.material.effects.color);
+      }
       data.verticesColorBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, data.verticesColorBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);

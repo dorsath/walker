@@ -4,8 +4,8 @@ class Walker
     @mvMatrix = Matrix.I(4);
 
     @zoom = -5;
-    @rotation_x = 45
-    @rotation_y = 45
+    @rotation_x = 0
+    @rotation_y = 0
     @currentlyPressedKeys = []
     @currentTime = (new Date).getTime()
 
@@ -13,8 +13,7 @@ class Walker
     document.onkeydown = @handleKeyDown;
 
     @models = []
-    @models[0] = new window.cube
-    @models[1] = new window.pillar
+    @models[0] = new window.pillar
 
     if gl
       gl.clearColor(0.0, 0.0, 0.0, 1.0);  # Clear to black, fully opaque
@@ -67,13 +66,14 @@ class Walker
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.perspectiveMatrix = makePerspective(45, 640.0/480.0, 0.1, 1000.0);
+    gl.perspectiveMatrix = makePerspective(45, 640.0/480.0, 0.1, 10000.0);
 
     gl.loadIdentity();
 
     gl.mvTranslate([-0.0, 0.0, @zoom]);
     gl.mvRotate(@rotation_y, [1, 0, 0]);
     gl.mvRotate(@rotation_x, [0, 1, 0]);
+    gl.mvRotate(-90, [1, 0, 0]);
 
     for model in @models
       gl.mvPushMatrix();
