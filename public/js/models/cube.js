@@ -6,9 +6,7 @@
 
     function Cube() {}
 
-    Cube.prototype.draw = function() {
-      return this.drawCube();
-    };
+    Cube.prototype.draw = function() {};
 
     Cube.prototype.buffer = function() {
       return this.bufferCube();

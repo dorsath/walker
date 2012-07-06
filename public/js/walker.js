@@ -5,29 +5,40 @@
   Walker = (function() {
 
     function Walker() {
+      var model, _i, _len, _ref;
       this.mvMatrixStack = [];
       this.mvMatrix = Matrix.I(4);
       this.zoom = -5;
-      this.rotation = 45;
+      this.rotation_x = 45;
+      this.rotation_y = 45;
       this.currentlyPressedKeys = [];
       this.currentTime = (new Date).getTime();
       document.onkeyup = this.handleKeyUp;
       document.onkeydown = this.handleKeyDown;
       this.models = [];
       this.models[0] = new window.cube;
+      this.models[1] = new window.pillar;
       if (gl) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clearDepth(1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
         gl.initShaders();
-        this.models[0].buffer();
-        setInterval(this.drawLoop, 15, gl, this);
+        _ref = this.models;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          model = _ref[_i];
+          model.buffer();
+        }
+        this.start();
       }
     }
 
-    Walker.prototype.drawLoop = function(gl, scope) {
-      return scope.drawScene(gl);
+    Walker.prototype.start = function() {
+      return setInterval(this.drawLoop, 15, this);
+    };
+
+    Walker.prototype.drawLoop = function(scope) {
+      return scope.drawScene();
     };
 
     Walker.prototype.handleKeyDown = function(event) {
@@ -40,10 +51,16 @@
 
     Walker.prototype.handleKeys = function() {
       if (this.currentlyPressedKeys[37]) {
-        this.rotation -= 360 * this.dt();
+        this.rotation_x -= 360 * this.dt();
       }
       if (this.currentlyPressedKeys[39]) {
-        this.rotation += 360 * this.dt();
+        this.rotation_x += 360 * this.dt();
+      }
+      if (this.currentlyPressedKeys[40]) {
+        this.rotation_y -= 360 * this.dt();
+      }
+      if (this.currentlyPressedKeys[38]) {
+        this.rotation_y += 360 * this.dt();
       }
       if (this.currentlyPressedKeys[187]) {
         this.zoom *= 0.9;
@@ -57,17 +74,22 @@
       return ((new Date).getTime() - this.currentTime) / 1000;
     };
 
-    Walker.prototype.drawScene = function(gl, scope) {
+    Walker.prototype.drawScene = function() {
+      var model, _i, _len, _ref;
       this.handleKeys();
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.perspectiveMatrix = makePerspective(45, 640.0 / 480.0, 0.1, 100.0);
+      gl.perspectiveMatrix = makePerspective(45, 640.0 / 480.0, 0.1, 1000.0);
       gl.loadIdentity();
       gl.mvTranslate([-0.0, 0.0, this.zoom]);
-      gl.mvRotate(45, [1, 0, 0]);
-      gl.mvRotate(this.rotation, [0, 1, 0]);
-      gl.mvPushMatrix();
-      this.models[0].draw();
-      gl.mvPopMatrix();
+      gl.mvRotate(this.rotation_y, [1, 0, 0]);
+      gl.mvRotate(this.rotation_x, [0, 1, 0]);
+      _ref = this.models;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        model = _ref[_i];
+        gl.mvPushMatrix();
+        model.draw();
+        gl.mvPopMatrix();
+      }
       return this.currentTime = (new Date).getTime();
     };
 

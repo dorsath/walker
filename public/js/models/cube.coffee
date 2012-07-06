@@ -1,6 +1,6 @@
 class Cube
   draw: ->
-    @drawCube()
+    # @drawCube()
 
   buffer: ->
     @bufferCube()

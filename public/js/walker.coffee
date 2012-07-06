@@ -4,7 +4,8 @@ class Walker
     @mvMatrix = Matrix.I(4);
 
     @zoom = -5;
-    @rotation = 45
+    @rotation_x = 45
+    @rotation_y = 45
     @currentlyPressedKeys = []
     @currentTime = (new Date).getTime()
 
@@ -13,7 +14,7 @@ class Walker
 
     @models = []
     @models[0] = new window.cube
-    # @models[1] = new window.pillar
+    @models[1] = new window.pillar
 
     if gl
       gl.clearColor(0.0, 0.0, 0.0, 1.0);  # Clear to black, fully opaque
@@ -24,13 +25,15 @@ class Walker
       gl.initShaders();
 
       # @initBuffers(gl)
-      @models[0].buffer()
-      # @models[1].buffer()
+      model.buffer() for model in @models
 
-      setInterval(@drawLoop, 15, gl, @);
+      @start()
 
-  drawLoop: (gl, scope) ->
-    scope.drawScene(gl)
+  start: ->
+    setInterval(@drawLoop, 15, @);
+
+  drawLoop: (scope) ->
+    scope.drawScene()
 
   handleKeyDown: (event) ->
     window.walker.currentlyPressedKeys[event.keyCode] = true
@@ -40,9 +43,14 @@ class Walker
 
   handleKeys: ->
     if (@currentlyPressedKeys[37])
-      @rotation -= 360*@dt();
+      @rotation_x -= 360*@dt();
     if (@currentlyPressedKeys[39])
-      @rotation += 360*@dt();
+      @rotation_x += 360*@dt();
+
+    if (@currentlyPressedKeys[40])
+      @rotation_y -= 360*@dt();
+    if (@currentlyPressedKeys[38])
+      @rotation_y += 360*@dt();
 
     if (@currentlyPressedKeys[187])
       @zoom *= 0.9;
@@ -53,29 +61,24 @@ class Walker
     return (((new Date).getTime() - @currentTime) / 1000);
 
 
-  drawScene:(gl,scope) ->
+  drawScene: ->
     # this = scope
     @handleKeys();
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.perspectiveMatrix = makePerspective(45, 640.0/480.0, 0.1, 100.0);
+    gl.perspectiveMatrix = makePerspective(45, 640.0/480.0, 0.1, 1000.0);
 
     gl.loadIdentity();
 
     gl.mvTranslate([-0.0, 0.0, @zoom]);
-    gl.mvRotate(45, [1, 0, 0]);
-    gl.mvRotate(@rotation, [0, 1, 0]);
+    gl.mvRotate(@rotation_y, [1, 0, 0]);
+    gl.mvRotate(@rotation_x, [0, 1, 0]);
 
-    gl.mvPushMatrix();
-    # @drawCube(gl);
-    @models[0].draw()
-    gl.mvPopMatrix();
-
-    # gl.mvPushMatrix();
-    # # @drawCube(gl);
-    # @models[1].draw()
-    # gl.mvPopMatrix();
+    for model in @models
+      gl.mvPushMatrix();
+      model.draw()
+      gl.mvPopMatrix();
 
     @currentTime = (new Date).getTime();
 
