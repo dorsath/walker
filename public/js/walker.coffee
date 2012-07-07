@@ -96,7 +96,7 @@ class Walker
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.perspectiveMatrix = makePerspective(45, 640.0/480.0, 0.1, 10000.0);
+    gl.perspectiveMatrix = makePerspective(45, 640.0/480.0, 0.1, 100000.0);
 
     gl.loadIdentity();
 

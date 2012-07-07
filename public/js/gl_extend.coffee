@@ -41,8 +41,8 @@
     return shader
 
   gl.initShaders= ->
-    fragmentShader = @getShader(gl, "shader-fs");
-    vertexShader = @getShader(gl, "shader-vs");
+    fragmentShader = gl.getShader(gl, "shader-fs");
+    vertexShader   = gl.getShader(gl, "shader-vs");
 
     @shaderProgram = gl.createProgram();
     gl.attachShader(@shaderProgram, vertexShader);
@@ -50,15 +50,38 @@
     gl.linkProgram(@shaderProgram);
 
     if (!gl.getProgramParameter(@shaderProgram, gl.LINK_STATUS))
-      alert("Unable to initialize the shader program.")
+      alert("Could not initialise shaders")
 
     gl.useProgram(@shaderProgram);
 
-    @vertexPositionAttribute = gl.getAttribLocation(@shaderProgram, "aVertexPosition");
-    gl.enableVertexAttribArray(@vertexPositionAttribute);
+    @shaderProgram.vertexPositionAttribute = gl.getAttribLocation(@shaderProgram, "aVertexPosition");
+    gl.enableVertexAttribArray(@shaderProgram.vertexPositionAttribute);
 
-    vertexColorAttribute = gl.getAttribLocation(@shaderProgram, "aVertexColor");
-    gl.enableVertexAttribArray(vertexColorAttribute);
+    @shaderProgram.vertexNormalAttribute = gl.getAttribLocation(@shaderProgram, "aVertexNormal");
+    gl.enableVertexAttribArray(@shaderProgram.vertexNormalAttribute);
+
+    @shaderProgram.textureCoordAttribute = gl.getAttribLocation(@shaderProgram, "aTextureCoord");
+    gl.enableVertexAttribArray(@shaderProgram.textureCoordAttribute);
+
+    @shaderProgram.pMatrixUniform = gl.getUniformLocation(@shaderProgram, "uPMatrix");
+    @shaderProgram.mvMatrixUniform = gl.getUniformLocation(@shaderProgram, "uMVMatrix");
+    @shaderProgram.nMatrixUniform = gl.getUniformLocation(@shaderProgram, "uNMatrix");
+    @shaderProgram.samplerUniform = gl.getUniformLocation(@shaderProgram, "uSampler");
+    @shaderProgram.useLightingUniform = gl.getUniformLocation(@shaderProgram, "uUseLighting");
+    @shaderProgram.ambientColorUniform = gl.getUniformLocation(@shaderProgram, "uAmbientColor");
+    @shaderProgram.lightingDirectionUniform = gl.getUniformLocation(@shaderProgram, "uLightingDirection");
+    @shaderProgram.directionalColorUniform = gl.getUniformLocation(@shaderProgram, "uDirectionalColor");
+
+  gl.handleLoadedTexture = (texture) ->
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+    gl.generateMipmap(gl.TEXTURE_2D);
+
+    gl.bindTexture(gl.TEXTURE_2D, null);
 
   gl.loadIdentity= ->
     @mvMatrix = Matrix.I(4);
@@ -95,6 +118,12 @@
 
       m = Matrix.Rotation(inRadians, $V([v[0], v[1], v[2]])).ensure4x4();
       gl.multMatrix(m);
+
+  gl.normalMatrix = ->
+    normMatrix = gl.mvMatrix.inverse()
+    normMatrix = normMatrix.transpose()
+    nUniform   = gl.getUniformLocation(@shaderProgram, "uNormalMatrix");
+    gl.uniformMatrix4fv(nUniform, false, new WebGLFloatArray(normMatrix.flatten()));
 
   window.walker = new window.walker_object
 

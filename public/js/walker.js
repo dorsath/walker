@@ -111,7 +111,7 @@
       var model, _i, _len, _ref;
       this.handleKeys();
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.perspectiveMatrix = makePerspective(45, 640.0 / 480.0, 0.1, 10000.0);
+      gl.perspectiveMatrix = makePerspective(45, 640.0 / 480.0, 0.1, 100000.0);
       gl.loadIdentity();
       gl.mvTranslate([-0.0, 0.0, this.zoom]);
       gl.mvRotate(this.rotation_y, [1, 0, 0]);

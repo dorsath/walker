@@ -32,13 +32,34 @@ class Model
 
         indices_info = g["mesh"].first["triangles"].first
 
-        indices = indices_info["p"].first.split(" ").collect { |t| t.to_f }
-        indices_vertice_source_id = indices_info["input"].first['source'].delete("#")
+        vertices = []
+        normals = []
+        texcoords = []
+        indices = indices_info["p"].first.split(" ").collect { |t| t.to_i }
+        indices_vertice_source_id = indices_info["input"].each do |d|
+          indices_vertice_source_id = d['source'].delete("#")
+          if d["semantic"] == "VERTEX"
+            vertice_info = g["mesh"].first["vertices"].find{ |a| a["id"] == indices_vertice_source_id}["input"]
+            indices_vertice_id = vertice_info.find{ |t| t["semantic"] == "POSITION" }["source"].delete("#")
+            indices_normals_id = vertice_info.find{ |t| t["semantic"] == "NORMAL" }["source"].delete("#")
 
-        indices_vertice_id = g["mesh"].first["vertices"].find{ |a| a["id"] == indices_vertice_source_id}["input"].find{ |t| t["semantic"] == "POSITION" }["source"].delete("#")
-        vertices = g["mesh"].first["source"].find{ |a| a["id"] == indices_vertice_id }["float_array"].first["content"].split(" ").collect{ |t| t.to_f}
+            vertices += g["mesh"].first["source"].find{ |a| a["id"] == indices_vertice_id }["float_array"].first["content"].split(" ").collect{ |t| t.to_f}
+             normals += g["mesh"].first["source"].find{ |a| a["id"] == indices_normals_id }["float_array"].first["content"].split(" ").collect{ |t| t.to_f}
+          else
+            texcoords = g["mesh"].first["source"].find{ |a| a["id"] == indices_vertice_source_id}["float_array"].first["content"].split(" ").collect{ |t| t.to_f}
+            p texcoords
+          end
+        end
 
-        @geometries[geometry_id] = {:vertices => vertices, :indices => indices}
+        new_indices = []
+        indices.each_with_index do |v,i|
+          new_indices << v if i.odd?
+        end
+        indices = new_indices
+        # indices_count = (indices_info["count"].to_i * 3)
+        # indices =  indices[(0..indices_count)]
+
+        @geometries[geometry_id] = {:vertices => vertices,:normals => normals, :indices => indices, :texcoords => texcoords}
       end
 
       @geometries
@@ -53,9 +74,10 @@ class Model
       @raw_data["library_effects"].first["effect"].each do |f|
         effect_id = f["id"]
 
-        color_info = f["profile_COMMON"].first.first[1].first["lambert"].first.first
+        color_info = f["profile_COMMON"].first["technique"].first["lambert"].first.first
         color_type = color_info[0]
-        colors = color_info[1].first["color"].first.split(" ").collect { |t| t.to_f }
+        # p colors = color_info[1].first["color"]
+        colors = (color_info[1].first["color"] || ["1 1 1 1"]).first.split(" ").collect { |t| t.to_f }
 
         @effects[effect_id] = {:type => color_type, :color => colors}
       end

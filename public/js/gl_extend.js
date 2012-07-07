@@ -38,21 +38,40 @@
       return shader;
     };
     gl.initShaders = function() {
-      var fragmentShader, vertexColorAttribute, vertexShader;
-      fragmentShader = this.getShader(gl, "shader-fs");
-      vertexShader = this.getShader(gl, "shader-vs");
+      var fragmentShader, vertexShader;
+      fragmentShader = gl.getShader(gl, "shader-fs");
+      vertexShader = gl.getShader(gl, "shader-vs");
       this.shaderProgram = gl.createProgram();
       gl.attachShader(this.shaderProgram, vertexShader);
       gl.attachShader(this.shaderProgram, fragmentShader);
       gl.linkProgram(this.shaderProgram);
       if (!gl.getProgramParameter(this.shaderProgram, gl.LINK_STATUS)) {
-        alert("Unable to initialize the shader program.");
+        alert("Could not initialise shaders");
       }
       gl.useProgram(this.shaderProgram);
-      this.vertexPositionAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
-      gl.enableVertexAttribArray(this.vertexPositionAttribute);
-      vertexColorAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexColor");
-      return gl.enableVertexAttribArray(vertexColorAttribute);
+      this.shaderProgram.vertexPositionAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
+      gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
+      this.shaderProgram.vertexNormalAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexNormal");
+      gl.enableVertexAttribArray(this.shaderProgram.vertexNormalAttribute);
+      this.shaderProgram.textureCoordAttribute = gl.getAttribLocation(this.shaderProgram, "aTextureCoord");
+      gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+      this.shaderProgram.pMatrixUniform = gl.getUniformLocation(this.shaderProgram, "uPMatrix");
+      this.shaderProgram.mvMatrixUniform = gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
+      this.shaderProgram.nMatrixUniform = gl.getUniformLocation(this.shaderProgram, "uNMatrix");
+      this.shaderProgram.samplerUniform = gl.getUniformLocation(this.shaderProgram, "uSampler");
+      this.shaderProgram.useLightingUniform = gl.getUniformLocation(this.shaderProgram, "uUseLighting");
+      this.shaderProgram.ambientColorUniform = gl.getUniformLocation(this.shaderProgram, "uAmbientColor");
+      this.shaderProgram.lightingDirectionUniform = gl.getUniformLocation(this.shaderProgram, "uLightingDirection");
+      return this.shaderProgram.directionalColorUniform = gl.getUniformLocation(this.shaderProgram, "uDirectionalColor");
+    };
+    gl.handleLoadedTexture = function(texture) {
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      return gl.bindTexture(gl.TEXTURE_2D, null);
     };
     gl.loadIdentity = function() {
       this.mvMatrix = Matrix.I(4);
@@ -91,6 +110,13 @@
       inRadians = angle * Math.PI / 180.0;
       m = Matrix.Rotation(inRadians, $V([v[0], v[1], v[2]])).ensure4x4();
       return gl.multMatrix(m);
+    };
+    gl.normalMatrix = function() {
+      var nUniform, normMatrix;
+      normMatrix = gl.mvMatrix.inverse();
+      normMatrix = normMatrix.transpose();
+      nUniform = gl.getUniformLocation(this.shaderProgram, "uNormalMatrix");
+      return gl.uniformMatrix4fv(nUniform, false, new WebGLFloatArray(normMatrix.flatten()));
     };
     return window.walker = new window.walker_object;
   };

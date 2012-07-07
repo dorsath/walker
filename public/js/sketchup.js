@@ -20,6 +20,7 @@
     Pillar.prototype.buffer = function() {
       var data, _i, _len, _ref, _results;
       this.data = window.loaded_objects;
+      this.initTexture();
       _ref = this.data;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -30,30 +31,56 @@
     };
 
     Pillar.prototype.drawObject = function(data) {
-      gl.bindBuffer(gl.ARRAY_BUFFER, data.verticesBuffer);
-      gl.vertexAttribPointer(gl.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, data.verticesColorBuffer);
-      gl.vertexAttribPointer(gl.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, data.verticesIndexBuffer);
+      var adjustedLD, lighting, lightingDirection;
+      gl.bindBuffer(gl.ARRAY_BUFFER, data.vertexPositionBuffer);
+      gl.vertexAttribPointer(gl.shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, data.vertexNormalBuffer);
+      gl.vertexAttribPointer(gl.shaderProgram.vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, data.vertexTextureCoordBuffer);
+      gl.vertexAttribPointer(gl.shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.crateTexture);
+      gl.uniform1i(gl.shaderProgram.samplerUniform, 0);
+      lighting = true;
+      gl.uniform1i(gl.shaderProgram.useLightingUniform, lighting);
+      if (lighting) {
+        gl.uniform3f(gl.shaderProgram.ambientColorUniform, 0.2, 0.2, 0.2);
+        lightingDirection = [-0.25, -0.25, -1.0];
+        adjustedLD = vec3.create();
+        vec3.normalize(lightingDirection, adjustedLD);
+        vec3.scale(adjustedLD, -1);
+        gl.uniform3fv(gl.shaderProgram.lightingDirectionUniform, adjustedLD);
+        gl.uniform3f(gl.shaderProgram.directionalColorUniform, 0.8, 0.8, 0.8);
+      }
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, data.vertexIndexBuffer);
       gl.setMatrixUniforms();
       return gl.drawElements(gl.TRIANGLES, data.geometry.indices.length, gl.UNSIGNED_SHORT, 0);
     };
 
     Pillar.prototype.bufferObject = function(data) {
-      var generatedColors, n, _i, _ref;
-      data.verticesBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, data.verticesBuffer);
+      data.vertexPositionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, data.vertexPositionBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.geometry.vertices), gl.STATIC_DRAW);
-      generatedColors = [];
-      for (n = _i = 0, _ref = data.geometry.indices.length; 0 <= _ref ? _i <= _ref : _i >= _ref; n = 0 <= _ref ? ++_i : --_i) {
-        generatedColors = generatedColors.concat(data.material.color);
-      }
-      data.verticesColorBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, data.verticesColorBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
-      data.verticesIndexBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, data.verticesIndexBuffer);
+      data.vertexNormalBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, data.vertexNormalBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.geometry.normals), gl.STATIC_DRAW);
+      data.vertexTextureCoordBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, data.vertexTextureCoordBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.geometry.texcoords), gl.STATIC_DRAW);
+      data.vertexIndexBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, data.vertexIndexBuffer);
       return gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data.geometry.indices), gl.STATIC_DRAW);
+    };
+
+    Pillar.prototype.initTexture = function() {
+      this.crateTexture = gl.createTexture();
+      this.crateTexture.image = new Image();
+      this.crateTexture.image.src = "model/wood_floor_parquet_.jpg";
+      return this.crateTexture.image.onload = this.hmm(this.crateTexture);
+    };
+
+    Pillar.prototype.hmm = function(texture) {
+      return gl.handleLoadedTexture(texture);
     };
 
     return Pillar;
