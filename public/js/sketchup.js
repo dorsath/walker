@@ -19,8 +19,10 @@
 
     Pillar.prototype.buffer = function() {
       var data, _i, _len, _ref, _results;
-      this.data = window.loaded_objects;
-      this.initTexture();
+      this.data = window.loaded_objects.scene;
+      this.textures = window.loaded_objects.textures;
+      this.initTextures();
+      console.log(this.textures);
       _ref = this.data;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -39,7 +41,7 @@
       gl.bindBuffer(gl.ARRAY_BUFFER, data.vertexTextureCoordBuffer);
       gl.vertexAttribPointer(gl.shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, this.crateTexture);
+      gl.bindTexture(gl.TEXTURE_2D, this.textureBuffers[data.material.texture]);
       gl.uniform1i(gl.shaderProgram.samplerUniform, 0);
       lighting = true;
       gl.uniform1i(gl.shaderProgram.useLightingUniform, lighting);
@@ -72,11 +74,25 @@
       return gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data.geometry.indices), gl.STATIC_DRAW);
     };
 
-    Pillar.prototype.initTexture = function() {
-      this.crateTexture = gl.createTexture();
-      this.crateTexture.image = new Image();
-      this.crateTexture.image.src = "model/wood_floor_parquet_.jpg";
-      return this.crateTexture.image.onload = this.hmm(this.crateTexture);
+    Pillar.prototype.initTextures = function() {
+      var texture, _i, _len, _ref, _results;
+      this.textureBuffers = [];
+      _ref = this.textures;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        texture = _ref[_i];
+        _results.push(this.textureBuffers[this.textureBuffers.length] = this.initTexture(texture["src"]));
+      }
+      return _results;
+    };
+
+    Pillar.prototype.initTexture = function(src) {
+      var texture;
+      texture = gl.createTexture();
+      texture.image = new Image();
+      texture.image.src = src;
+      texture.image.onload = this.hmm(texture);
+      return texture;
     };
 
     Pillar.prototype.hmm = function(texture) {

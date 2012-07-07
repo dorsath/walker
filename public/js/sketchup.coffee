@@ -4,8 +4,11 @@ class Pillar
     # @drawObject(@data[0])
 
   buffer: ->
-    @data = (window.loaded_objects)
-    @initTexture()
+    @data    = window.loaded_objects.scene
+    @textures = window.loaded_objects.textures
+
+    @initTextures()
+    console.log(@textures)
     @bufferObject(data) for data in @data
 
   drawObject: (data) ->
@@ -19,7 +22,7 @@ class Pillar
     gl.vertexAttribPointer(gl.shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, @crateTexture);
+    gl.bindTexture(gl.TEXTURE_2D, @textureBuffers[data.material.texture]);
     gl.uniform1i(gl.shaderProgram.samplerUniform, 0);
 
     lighting = true
@@ -46,7 +49,6 @@ class Pillar
 
 
   bufferObject: (data) ->
-
     data.vertexPositionBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, data.vertexPositionBuffer)
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.geometry.vertices), gl.STATIC_DRAW)
@@ -63,11 +65,18 @@ class Pillar
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, data.vertexIndexBuffer)
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data.geometry.indices), gl.STATIC_DRAW)
 
-  initTexture:() ->
-    @crateTexture = gl.createTexture();
-    @crateTexture.image = new Image();
-    @crateTexture.image.src = "model/wood_floor_parquet_.jpg"
-    @crateTexture.image.onload = @hmm(@crateTexture)
+  initTextures:() ->
+    @textureBuffers = []
+    for texture in @textures
+      @textureBuffers[@textureBuffers.length] = @initTexture(texture["src"])
+
+
+  initTexture:(src) ->
+    texture = gl.createTexture();
+    texture.image = new Image();
+    texture.image.src = src
+    texture.image.onload = @hmm(texture)
+    return texture
 
   hmm: (texture) ->
     gl.handleLoadedTexture(texture)

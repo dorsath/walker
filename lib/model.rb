@@ -5,7 +5,7 @@ class Model
 
   def initialize(filename)
     @raw_data = XmlSimple.xml_in("models/#{filename}")
-    @data = scene_geometries
+    @data = {:scene => scene_geometries, :textures => library_images}
   end
 
   def scene_geometries
@@ -47,15 +47,16 @@ class Model
              normals += g["mesh"].first["source"].find{ |a| a["id"] == indices_normals_id }["float_array"].first["content"].split(" ").collect{ |t| t.to_f}
           else
             texcoords = g["mesh"].first["source"].find{ |a| a["id"] == indices_vertice_source_id}["float_array"].first["content"].split(" ").collect{ |t| t.to_f}
-            p texcoords
           end
         end
 
-        new_indices = []
-        indices.each_with_index do |v,i|
-          new_indices << v if i.odd?
+        unless texcoords.empty?
+          new_indices = [] #apparantly sketchup saves the indices double.
+          indices.each_with_index do |v,i|
+            new_indices << v if i.odd?
+          end
+          indices = new_indices
         end
-        indices = new_indices
         # indices_count = (indices_info["count"].to_i * 3)
         # indices =  indices[(0..indices_count)]
 
@@ -76,10 +77,19 @@ class Model
 
         color_info = f["profile_COMMON"].first["technique"].first["lambert"].first.first
         color_type = color_info[0]
-        # p colors = color_info[1].first["color"]
-        colors = (color_info[1].first["color"] || ["1 1 1 1"]).first.split(" ").collect { |t| t.to_f }
+        if color_info[1].first.first[0] == "texture"
 
-        @effects[effect_id] = {:type => color_type, :color => colors}
+          texture_id = color_info[1].first["texture"].first["texture"]
+          source_id = f["profile_COMMON"].first["newparam"].find{|a| a["sid"] == texture_id }["sampler2D"].first["source"].first
+          actual_texture_id = f["profile_COMMON"].first["newparam"].find{|a| a["sid"] == source_id }["surface"].first["init_from"].first
+
+          texture = library_images.index(library_images.find{ |i| i[:id] == actual_texture_id})
+        else
+          #todo normale kleuren color_info[1].first.first[1].first.split(" ").collect{ |i| i.to_f}
+
+        end
+
+        @effects[effect_id] = {:type => color_type, :texture => texture}
       end
       @effects
     end
@@ -97,6 +107,18 @@ class Model
       end
 
       return @materials
+    end
+  end
+
+  def library_images
+    if @images
+      @images
+    else
+      @images = []
+      @raw_data["library_images"].first["image"].each do |image|
+        @images << {:id => image["id"], :src => image["init_from"].first}
+      end
+      @images
     end
   end
 
