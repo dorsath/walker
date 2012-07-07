@@ -8,9 +8,16 @@ class Walker
     @rotation_y = 0
     @currentlyPressedKeys = []
     @currentTime = (new Date).getTime()
+    @clicked = false
 
     document.onkeyup   = @handleKeyUp;
     document.onkeydown = @handleKeyDown;
+
+    canvas = document.getElementById("glcanvas");
+    canvas.onmousedown = @handleMouseDown;
+    document.onmouseup = @handleMouseUp;
+    document.onmousemove = @handleMouseMove;
+
 
     @models = []
     @models[0] = new window.pillar
@@ -34,11 +41,34 @@ class Walker
   drawLoop: (scope) ->
     scope.drawScene()
 
+  handleMouseDown: (event) ->
+    window.walker.startMoveCamera([event.x, event.y])
+
+  handleMouseUp: (event) ->
+    window.walker.endMoveCamera()
+
+  handleMouseMove: (event) ->
+    window.walker.moveCamera([event.x, event.y])
+
   handleKeyDown: (event) ->
     window.walker.currentlyPressedKeys[event.keyCode] = true
 
   handleKeyUp: (event) ->
     window.walker.currentlyPressedKeys[event.keyCode] = false
+
+  startMoveCamera: (pos) ->
+    @clicked = true
+    @previousMousePosition = pos
+
+  endMoveCamera: ->
+    @clicked = false
+
+  moveCamera: (pos) ->
+    if @clicked
+      @rotation_x += @previousMousePosition[0] - pos[0]
+      @rotation_y += @previousMousePosition[1] - pos[1]
+
+      @previousMousePosition = pos
 
   handleKeys: ->
     if (@currentlyPressedKeys[37])

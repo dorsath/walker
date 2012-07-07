@@ -5,7 +5,7 @@
   Walker = (function() {
 
     function Walker() {
-      var model, _i, _len, _ref;
+      var canvas, model, _i, _len, _ref;
       this.mvMatrixStack = [];
       this.mvMatrix = Matrix.I(4);
       this.zoom = -5;
@@ -13,8 +13,13 @@
       this.rotation_y = 0;
       this.currentlyPressedKeys = [];
       this.currentTime = (new Date).getTime();
+      this.clicked = false;
       document.onkeyup = this.handleKeyUp;
       document.onkeydown = this.handleKeyDown;
+      canvas = document.getElementById("glcanvas");
+      canvas.onmousedown = this.handleMouseDown;
+      document.onmouseup = this.handleMouseUp;
+      document.onmousemove = this.handleMouseMove;
       this.models = [];
       this.models[0] = new window.pillar;
       if (gl) {
@@ -40,12 +45,41 @@
       return scope.drawScene();
     };
 
+    Walker.prototype.handleMouseDown = function(event) {
+      return window.walker.startMoveCamera([event.x, event.y]);
+    };
+
+    Walker.prototype.handleMouseUp = function(event) {
+      return window.walker.endMoveCamera();
+    };
+
+    Walker.prototype.handleMouseMove = function(event) {
+      return window.walker.moveCamera([event.x, event.y]);
+    };
+
     Walker.prototype.handleKeyDown = function(event) {
       return window.walker.currentlyPressedKeys[event.keyCode] = true;
     };
 
     Walker.prototype.handleKeyUp = function(event) {
       return window.walker.currentlyPressedKeys[event.keyCode] = false;
+    };
+
+    Walker.prototype.startMoveCamera = function(pos) {
+      this.clicked = true;
+      return this.previousMousePosition = pos;
+    };
+
+    Walker.prototype.endMoveCamera = function() {
+      return this.clicked = false;
+    };
+
+    Walker.prototype.moveCamera = function(pos) {
+      if (this.clicked) {
+        this.rotation_x += this.previousMousePosition[0] - pos[0];
+        this.rotation_y += this.previousMousePosition[1] - pos[1];
+        return this.previousMousePosition = pos;
+      }
     };
 
     Walker.prototype.handleKeys = function() {
