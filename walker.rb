@@ -6,7 +6,7 @@ require './lib/model'
 
 
 get '/' do
-  @data = Model.load('model.dae')
+  @data = Model.new('model.dae').data
 
   erb :index
 end

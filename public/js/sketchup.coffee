@@ -6,7 +6,7 @@ class Pillar
   buffer: ->
     @data = (window.loaded_objects)
 
-    console.log(@data)
+    # console.log(@data)
     @bufferObject(data) for data in @data
 
   drawObject: (data) ->
@@ -18,17 +18,17 @@ class Pillar
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, data.verticesIndexBuffer);
     gl.setMatrixUniforms();
-    gl.drawElements(gl.TRIANGLES, data.indices.length, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, data.geometry.indices.length, gl.UNSIGNED_SHORT, 0);
 
 
   bufferObject: (data) ->
     data.verticesBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, data.verticesBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.vertices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.geometry.vertices), gl.STATIC_DRAW);
 
     generatedColors = []
     # console.log(data.material.effects.color) for n in [0..data.indices.length]
-    generatedColors =  generatedColors.concat(data.material.effects.color) for n in [0..data.indices.length]
+    generatedColors =  generatedColors.concat(data.material.color) for n in [0..data.geometry.indices.length]
 
     data.verticesColorBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, data.verticesColorBuffer);
@@ -37,7 +37,7 @@ class Pillar
 
     data.verticesIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, data.verticesIndexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data.indices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data.geometry.indices), gl.STATIC_DRAW);
 
 
 window.pillar = Pillar
